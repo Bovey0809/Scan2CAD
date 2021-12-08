@@ -85,16 +85,15 @@ class UserQuery:
         print("project-dir:", projectdir)
         if not os.path.exists(projectdir):
             return MODE.NEW, projectdir
-        else:
-            text = ""
-            try:
-                text = input("Exist already. Replace [r] or Load [l]?: ")
-            except:
-                quit()
-            if text == "r":
-                return MODE.REPLACE, projectdir
-            elif text == "l":
-                return MODE.LOAD, projectdir
+        text = ""
+        try:
+            text = input("Exist already. Replace [r] or Load [l]?: ")
+        except:
+            quit()
+        if text == "l":
+            return MODE.LOAD, projectdir
+        elif text == "r":
+            return MODE.REPLACE, projectdir
         quit()
     def create_folder_increment(self, basedir, foldername0):
         for i in range(1000):

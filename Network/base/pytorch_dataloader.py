@@ -46,10 +46,7 @@ class DatasetOnlineLoad(torchdata.Dataset):
         #data_processing.gaussian_blur(s, 1.0)
 
         sampletype = -1
-        if "kp" in basename:
-            sampletype = 1.0
-        else:
-            sampletype = 0.0
+        sampletype = 1.0 if "kp" in basename else 0.0
         sdf = torch.from_numpy(s.sdf)
         #pdf = torch.from_numpy(s.pdf[0, :, self.gridcenterY, self.gridcenterX])
         pdf = torch.from_numpy(s.pdf)

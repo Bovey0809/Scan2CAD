@@ -17,13 +17,6 @@ class LossContainer:
     def calc_mean(self):
         tup = ()
 
-        if self.loss:
-            tup = tup + (np.mean(self.loss),)
-        else:
-            tup = tup + (0, )
-
-        if self.classloss:
-            tup = tup + (np.mean(self.classloss, 0),)
-        else:
-            tup = tup + (0,)
+        tup = tup + (np.mean(self.loss),) if self.loss else tup + (0, )
+        tup = tup + (np.mean(self.classloss, 0),) if self.classloss else tup + (0,)
         return tup

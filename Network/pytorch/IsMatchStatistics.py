@@ -19,10 +19,7 @@ class Statistics:
         assert(0.5 in self.tp)
 
     def pr_curve(self):
-        pr = []
-        for t in self.t0:
-            pr.append([t, self.precision(t), self.recall(t)])
-        return pr
+        return [[t, self.precision(t), self.recall(t)] for t in self.t0]
 
     def update(self, a0, gt0):
         for t in self.t0:
@@ -40,8 +37,7 @@ class Statistics:
     def mAP(self):
         p = [self.precision(t) for t in self.t0]
         r = [self.recall(t) for t in self.t0]
-        integral = np.abs(np.trapz(p, x=r))
-        return integral
+        return np.abs(np.trapz(p, x=r))
 
     def precision(self, t=0.5):
         p = self.tp[t] + self.fp[t]

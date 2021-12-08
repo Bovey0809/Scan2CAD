@@ -29,8 +29,7 @@ def make_M_from_tqs(t, q, s):
     S = np.eye(4)
     S[0:3, 0:3] = np.diag(s)
 
-    M = T.dot(R).dot(S)
-    return M 
+    return T.dot(R).dot(S) 
 
 if __name__ == '__main__':
     params = JSONHelper.read("./Parameters.json")

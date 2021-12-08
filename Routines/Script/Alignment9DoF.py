@@ -34,7 +34,7 @@ def run_alignment_cpp(filename_json, filename_out):
 
 if __name__ == '__main__':
     
-    outdir = "./tmp/alignments/" + os.path.basename(os.path.normpath(opt.projectdir)) + "/" 
+    outdir = "./tmp/alignments/" + os.path.basename(os.path.normpath(opt.projectdir)) + "/"
     shutil.rmtree(outdir, ignore_errors=True)
     pathlib.Path(outdir).mkdir(parents=True, exist_ok=True) 
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     collect_results = collections.defaultdict(list)
     for f in glob.glob(opt.projectdir + "/scene*"):
         foldername = os.path.basename(f)
-        id_scan, catid_cad, id_cad = foldername.rsplit("_", 4)[0:3]
+        id_scan, catid_cad, id_cad = foldername.rsplit("_", 4)[:3]
         filename_json = f + "/predict.json"
         item = JSONHelper.read(filename_json)
         item["filename_heatmap"] = f + "/predict-heatmap.vox2"
@@ -66,13 +66,13 @@ if __name__ == '__main__':
                 "rot" : [1,-1,0,0], # <-- as z-up (from y-up). this rotation is needed because the up vector between shapenet and scannet is different
                 "pairs" : v
                 }
-        
+
         filename_json = os.path.abspath(outdir + "/" + "_".join(k) + ".json")
         JSONHelper.write(filename_json, data)
 
         run_alignment_cpp(filename_json, filename_out)
     # <--
-    
+
     # --> collect alignment result and write scene file
     scenes = collections.defaultdict(lambda: [("# id-scan", "catid-cad", "id-cad","tx", "ty", "tz", "qw", "qx", "qy", "qz", "sx", "sy", "sz")])
     for k in collect_results.keys():
@@ -88,17 +88,15 @@ if __name__ == '__main__':
         filename_csv = os.path.abspath(outdir + "/" + k + ".csv")
         CSVHelper.write(filename_csv, v)
         print("scene-file saved:", filename_csv)
-    
+
         # -> write visualization json file
         id_scan = k
-        cargo = {}
-        cargo["meshes"] = []
-
+        cargo = {'meshes': []}
         t = [0,0,0]
         q = [1, -1, 0, 0]
         s = [1,1,1]
         cargo["trs_global"] = { "trans" : t, "rot" : q, "scale" : s }
-        
+
         # -> scan
         Mscan = np.eye(4)
         t = [0,0,0]

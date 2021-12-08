@@ -22,15 +22,13 @@ opt = parser.parse_args()
 
 def get_catid2index(filename):
     catid2index = {}
-    csvfile = open(filename) 
-    spamreader = csv.DictReader(csvfile, delimiter='\t')
-    for row in spamreader:
-        try:
-            catid2index[row["wnsynsetid"][1:]] = int(row["nyu40id"])
-        except:
-            pass
-    csvfile.close()
-
+    with open(filename) as csvfile:
+        spamreader = csv.DictReader(csvfile, delimiter='\t')
+        for row in spamreader:
+            try:
+                catid2index[row["wnsynsetid"][1:]] = int(row["nyu40id"])
+            except:
+                pass
     return catid2index
 
 def make_M_from_tqs(t, q, s):
@@ -42,8 +40,7 @@ def make_M_from_tqs(t, q, s):
     S = np.eye(4)
     S[0:3, 0:3] = np.diag(s)
 
-    M = T.dot(R).dot(S)
-    return M 
+    return T.dot(R).dot(S) 
 
 def decompose_mat4(M):
     R = M[0:3, 0:3]
@@ -68,8 +65,9 @@ if __name__ == '__main__':
     verts0 = []
     norms0 = []
     scan_file = ""
+    norms = []
     for alignment in CSVHelper.read("./dummy_alignment.csv", skip_header=True):
-        id_scan, catid_cad, id_cad = alignment[0:3]
+        id_scan, catid_cad, id_cad = alignment[:3]
         t = np.asarray(alignment[3:6], dtype=np.float64)
         q = np.asarray(alignment[6:10], dtype=np.float64)
         s = np.asarray(alignment[10:13], dtype=np.float64)
@@ -103,10 +101,9 @@ if __name__ == '__main__':
         color = (50, 200, 50)
         faces = []
         verts = []
-        norms = []
         for name, mesh in cad_mesh.meshes.items():
             for f in mesh.faces:
-                faces.append((np.array(f[0:3]) + len(verts0),))
+                faces.append((np.array(f[:3]) + len(verts0), ))
                 #n0 = cad_mesh.parser.normals[f[3]]
                 v0 = cad_mesh.vertices[f[0]]
                 v1 = cad_mesh.vertices[f[1]]
@@ -118,11 +115,11 @@ if __name__ == '__main__':
                 if len(v2) == 3:
                     cad_mesh.vertices[f[2]] = v2 + color
         faces0.extend(faces)
-        
+
         for v in cad_mesh.vertices[:]:
             if len(v) != 6:
                 v = (0, 0, 0) + (0, 0, 0)
-            vi = tuple(np.dot(Mcad, np.array([v[0], v[1], v[2], 1]))[0:3])
+            vi = tuple(np.dot(Mcad, np.array([v[0], v[1], v[2], 1]))[:3])
             #ni = tuple(np.dot(np.linalg.inv(Mcad).transpose(), np.array([v[3], v[4], v[5], 1]))[0:3])
             ci = tuple(v[3:6])
             verts.append(vi + ci)

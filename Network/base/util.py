@@ -58,22 +58,18 @@ def crop_from_volume_python(s0, x, y, z):
     return s
 
 def feed_as_generator(s0):
-    for s in s0:
-        yield s
+    yield from s0
 
 def get_batchwise(s0, batchsize):
     n_samples = len(s0)
     assert(n_samples >= batchsize)
     for i in range(n_samples//batchsize):
-        s = []
-        for j in range(batchsize):
-            s.append(s0[i*batchsize + j])
-
+        s = [s0[i*batchsize + j] for j in range(batchsize)]
         yield s
 
 def sliding_subvolume(s0):
-    for sy in range(0, int(s0.dimy)):
-        for sx in range(0, int(s0.dimx)):
+    for sy in range(int(s0.dimy)):
+        for sx in range(int(s0.dimx)):
             s = crop_from_volume(s0, sx, sy, 0)
             s.sx = sx
             s.sy = sy
@@ -113,7 +109,7 @@ def save_net1_prediction(batch_size, rootdir, sdf0, sdf1, target, prediction, ba
 
 def accumulate_samples(gen, batch_size):
     s = []
-    for i in range(batch_size):
+    for _ in range(batch_size):
         try:
             s.append(next(gen))
         except StopIteration:

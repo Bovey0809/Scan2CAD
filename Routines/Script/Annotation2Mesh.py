@@ -21,15 +21,13 @@ opt = parser.parse_args()
 
 def get_catid2index(filename):
     catid2index = {}
-    csvfile = open(filename) 
-    spamreader = csv.DictReader(csvfile, delimiter='\t')
-    for row in spamreader:
-        try:
-            catid2index[row["wnsynsetid"][1:]] = int(row["nyu40id"])
-        except:
-            pass
-    csvfile.close()
-
+    with open(filename) as csvfile:
+        spamreader = csv.DictReader(csvfile, delimiter='\t')
+        for row in spamreader:
+            try:
+                catid2index[row["wnsynsetid"][1:]] = int(row["nyu40id"])
+            except:
+                pass
     return catid2index
 
 def make_M_from_tqs(t, q, s):
@@ -41,8 +39,7 @@ def make_M_from_tqs(t, q, s):
     S = np.eye(4)
     S[0:3, 0:3] = np.diag(s)
 
-    M = T.dot(R).dot(S)
-    return M 
+    return T.dot(R).dot(S) 
 
 def calc_Mbbox(model):
     trs_obj = model["trs"]
@@ -63,8 +60,7 @@ def calc_Mbbox(model):
     scale1[0:3, 0:3] = np.diag(scale_obj)
     bbox1 = np.eye(4)
     bbox1[0:3, 0:3] = np.diag(bbox_obj)
-    M = trans1.dot(rot1).dot(scale1).dot(tcenter1).dot(bbox1)
-    return M
+    return trans1.dot(rot1).dot(scale1).dot(tcenter1).dot(bbox1)
 
 def decompose_mat4(M):
     R = M[0:3, 0:3]
@@ -131,13 +127,13 @@ if __name__ == '__main__':
 
             id_cad = model["id_cad"]
             catid_cad = model["catid_cad"]
-        
+
             Mbbox = calc_Mbbox(model)
             for f in mesh_bbox["face"]: 
                 faces_bbox.append((np.array(f[0]) + len(verts_bbox),))
             for v in mesh_bbox["vertex"]: 
                 v1 = np.array([v[0], v[1], v[2], 1])
-                v1 = np.dot(Mbbox, v1)[0:3]
+                v1 = np.dot(Mbbox, v1)[:3]
                 verts_bbox.append(tuple(v1) + (50,50,200))
 
             cad_file = params["shapenet"] + "/" + catid_cad + "/" + id_cad  + "/models/model_normalized.obj"
@@ -150,7 +146,7 @@ if __name__ == '__main__':
             verts = []
             for name, mesh in cad_mesh.meshes.items():
                 for f in mesh.faces:
-                    faces.append((np.array(f[0:3]) + len(verts_cad),))
+                    faces.append((np.array(f[:3]) + len(verts_cad), ))
                     v0 = cad_mesh.vertices[f[0]]
                     v1 = cad_mesh.vertices[f[1]]
                     v2 = cad_mesh.vertices[f[2]]
@@ -161,11 +157,11 @@ if __name__ == '__main__':
                     if len(v2) == 3:
                         cad_mesh.vertices[f[2]] = v2 + color
             faces_cad.extend(faces)
-            
+
             for v in cad_mesh.vertices[:]:
                 if len(v) != 6:
                     v = (0, 0, 0) + (0, 0, 0)
-                vi = tuple(np.dot(Mcad, np.array([v[0], v[1], v[2], 1]))[0:3])
+                vi = tuple(np.dot(Mcad, np.array([v[0], v[1], v[2], 1]))[:3])
                 ci = tuple(v[3:6])
                 verts.append(vi + ci)
             verts_cad.extend(verts)
@@ -177,7 +173,7 @@ if __name__ == '__main__':
     print("alignment saved",savename)
     with open(savename, mode='wb') as f:
         PlyData(objdata).write(f)
-    
+
     verts_bbox = np.asarray(verts_bbox, dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4'), ('red', 'u1'), ('green', 'u1'), ('blue', 'u1')])
     faces_bbox = np.asarray(faces_bbox, dtype=[('vertex_indices', 'i4', (3,))])
     objdata = PlyData([PlyElement.describe(verts_bbox, 'vertex', comments=['vertices']),  PlyElement.describe(faces_bbox, 'face')], comments=['faces'])

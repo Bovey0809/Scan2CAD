@@ -63,7 +63,13 @@ gkern3d_dim32 = torch.FloatTensor(torch.from_numpy(kernels.gaussian3d(7, 1.5))).
 
 model = modelnn.Model3d().cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=0.0005)
-n_model_params = int(sum([np.prod(p.size()) for p in filter(lambda p: p.requires_grad, model.parameters())]))
+n_model_params = int(
+    sum(
+        np.prod(p.size())
+        for p in filter(lambda p: p.requires_grad, model.parameters())
+    )
+)
+
 
 
 if opt.seed == -1:
@@ -100,7 +106,7 @@ class TrainingWorld:
 
         milestones = [int(1e5 + i*3e4) for i in range(10)]
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=0.5, last_epoch=-1)
-        for i in range(self.counter_offset):
+        for _ in range(self.counter_offset):
             self.scheduler.step()
         for param_group in optimizer.param_groups:
             print("lr", param_group["lr"])
@@ -110,11 +116,11 @@ class TrainingWorld:
     
     def train(self):
         model.train()
-        
+
         self.dataloader_train = torchdata.DataLoader(self.dataset_train, batch_size=opt.batch_size, shuffle=True, num_workers=opt.n_threads, drop_last=True)
 
         # ----------------------------------------------------------------------
-        for i_batch, samples_batch in enumerate(self.dataloader_train):
+        for samples_batch in self.dataloader_train:
             self.scheduler.step()
             if self.counter_iteration % opt.interval_eval == 0:
                 print("timing", time.time() - self.timing)
@@ -129,13 +135,13 @@ class TrainingWorld:
             sys.stdout.flush()
 
             losses_batch, outputs = self.feed_forward(samples_batch)
-            
+
             loss_batch = torch.FloatTensor([0]).cuda()
             for k,v in losses_batch.items():
                 loss_batch += v[0]*v[1] # <- loss*weight
 
             self.backprop(loss_batch)
-            
+
             self.counter_iteration += 1
 
     def save_checkpoint(self):
@@ -227,7 +233,7 @@ class TrainingWorld:
             for i_batch, samples_batch in enumerate(self.dataloader):
                 sys.stdout.write("\reval: i_batch: %i / %d             " % (i_batch, self.dataset.n_samples//opt.batch_size))
                 sys.stdout.flush()
-                
+
                 losses, outputs = self.feed_forward(samples_batch)
 
                 stats_heatmap.update(outputs["heatmap"], outputs["heatmap_gt"])
@@ -240,13 +246,10 @@ class TrainingWorld:
             outputs["f1_heatmap"] = stats_heatmap.f1()
             outputs["f1_ismatch"] = stats_match.f1()
 
-            pr = {}
-            pr["heatmap"] = stats_heatmap.pr_curve()
+            pr = {'heatmap': stats_heatmap.pr_curve()}
             pr["ismatch"] = stats_match.pr_curve()
 
-            losses_avg = {}
-            for k, v in losses_container.items():
-                losses_avg[k] = np.mean(v)
+            losses_avg = {k: np.mean(v) for k, v in losses_container.items()}
             return losses_avg, outputs, pr
         
         print("\n##########################")
