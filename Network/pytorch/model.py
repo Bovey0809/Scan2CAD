@@ -17,12 +17,17 @@ nf3 = 40
 nf4 = 64
 
 def make_downscale(n_in, n_out, kernel=4, normalization=nn.BatchNorm3d, activation=nn.ReLU):
-    block = nn.Sequential(
-            nn.Conv3d(n_in, n_out, kernel_size=kernel, stride=2, padding=(kernel-2)//2),
-            normalization(n_out),
-            activation(inplace=True)
-            )
-    return block
+    return nn.Sequential(
+        nn.Conv3d(
+            n_in,
+            n_out,
+            kernel_size=kernel,
+            stride=2,
+            padding=(kernel - 2) // 2,
+        ),
+        normalization(n_out),
+        activation(inplace=True),
+    )
 
     
 def make_conv(n_in, n_out, n_blocks, kernel=3, normalization=nn.BatchNorm3d, activation=nn.ReLU):
@@ -36,12 +41,11 @@ def make_conv(n_in, n_out, n_blocks, kernel=3, normalization=nn.BatchNorm3d, act
     return nn.Sequential(*blocks)
 
 def make_upscale(n_in, n_out, normalization=nn.BatchNorm3d, activation=nn.ReLU):
-    block = nn.Sequential(
+    return nn.Sequential(
             nn.ConvTranspose3d(n_in, n_out, kernel_size=6, stride=2, padding=2),
             normalization(n_out),
             activation(inplace=True)
             )
-    return block
 
 class ResBlock(nn.Module):
     def __init__(self, n_out, kernel=3, normalization=nn.BatchNorm3d, activation=nn.ReLU):

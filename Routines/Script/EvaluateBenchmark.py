@@ -47,8 +47,7 @@ def calc_rotation_diff(q, q00):
     except:
         return 0.0
     error_rotation_rad = 2 * np.arccos(rotation_dot_abs)
-    error_rotation = np.rad2deg(error_rotation_rad)
-    return error_rotation
+    return np.rad2deg(error_rotation_rad)
 
 
 def evaluate(projectdir, filename_cad_appearance, filename_annotations):

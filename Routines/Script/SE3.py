@@ -16,8 +16,7 @@ def compose_svd_mat4(t, ql, s, qr):
     S = np.eye(4)
     S[0:3, 0:3] = np.diag(s)
 
-    M = T.dot(Rl).dot(S).dot(Rr)
-    return M 
+    return T.dot(Rl).dot(S).dot(Rr) 
 
 def decompose_svd_mat4(M):
     Rl,S,Rr = np.linalg.svd(M[0:3,0:3])
@@ -43,8 +42,7 @@ def compose_mat4(t, q, s, center=None):
     if center is not None:
         C[0:3, 3] = center
 
-    M = T.dot(R).dot(S).dot(C)
-    return M 
+    return T.dot(R).dot(S).dot(C) 
 
 def decompose_mat4(M):
     R = M[0:3, 0:3].copy()
